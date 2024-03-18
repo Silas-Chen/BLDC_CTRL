@@ -1,0 +1,30 @@
+# Keil uVision5
+.settings/
+.vscode/
+Debug/
+MDK-ARM/222/
+*.uvguix.*
+*.scvd
+.cproject
+
+# C/C++
+*.o
+*.obj
+*.dll
+*.so
+*.dylib
+*.dep
+
+# ASM
+*.elf
+*.axf
+*.bin
+*.hex
+*.map
+*.sct
+*.ld
+*.lst
+*.s
+
+# SSH
+.ssh/
