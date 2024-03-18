@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "string.h"
 #include "stm32_dsp.h"
+#include "MACRO.h"
 #include "math.h"
 /* USER CODE END Includes */
 
@@ -54,6 +55,7 @@ uint32_t FFT_IN[NPT];
 uint32_t FFT_OUT[NPT];
 uint32_t FFT_MAG[NPT / 2];
 uint16_t i = 0;
+float FREQ = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -208,10 +210,10 @@ void getFFT_MAG(void)
 
 // 查找主频
 void getMAX_FFT_MAG(void){
-    unsigned short i;
-    unsigned long max = 0;
-    unsigned short maxIndex = 0;
-    for (i = 0; i < NPT / 2; i++)
+    
+    uint32_t max = 0;
+    uint16_t maxIndex = 0;
+    for (i = 1; i < NPT / 2; i++)
     {
         if (FFT_MAG[i] > max)
         {
