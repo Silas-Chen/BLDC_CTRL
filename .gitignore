@@ -24,7 +24,6 @@ MDK-ARM/222/
 *.sct
 *.ld
 *.lst
-*.s
 
 # SSH
 .ssh/
