@@ -27,7 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "string.h"
 #include "stm32_dsp.h"
-#include "MACRO.h" // Attention CubeMX cfg.
+#include "MACRO.h" // Attention CubeMX cfg, you need to change the ARR and PSC to auto-configured number..
 #include "math.h"
 /* USER CODE END Includes */
 
@@ -165,10 +165,10 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-// ADC-DMA 中断回调函数
+// ADC-DMA interrupt callback function
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
-    // 停止ADCDMA
+    // Stop ADC-DMA
     HAL_ADC_Stop_DMA(&hadc1);
     // memcpy(FFT_IN,ADC_BUFFER,NPT*sizeof(uint16_t));
     for (i = 0; i < NPT; i++)
@@ -179,11 +179,12 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
     cr4_fft_256_stm32(FFT_OUT, FFT_IN, NPT);
     getFFT_MAG();
     getMAX_FFT_MAG_FREQ();
+    // Restart ADC-DMA
     HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC_BUFFER, NPT_2);
     
 }
 
-// 对FFT结果取模
+// Take the modulus of the FFT result
 void getFFT_MAG(void)
 {
     signed short lX, lY;
@@ -194,7 +195,7 @@ void getFFT_MAG(void)
         lX = (FFT_OUT[i] << 16) >> 16;
         lY = (FFT_OUT[i] >> 16);
 
-        // 除以32768再乘65536是为了符合浮点数计算规律
+        // Dividing by 32768 and then multiplying by 65536 is done to comply with floating-point calculation rules.
         X = NPT * ((float)lX) / 32768;
         Y = NPT * ((float)lY) / 32768;
         Mag = sqrt(X * X + Y * Y) / NPT;
@@ -210,7 +211,7 @@ void getFFT_MAG(void)
     i = 0;
 }
 
-// 查找主频
+// Find the main frequency
 void getMAX_FFT_MAG_FREQ(void)
 {
     uint32_t maxMAG = 0;
