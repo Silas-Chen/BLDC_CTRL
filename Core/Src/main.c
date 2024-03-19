@@ -49,7 +49,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint16_t ADC_BUFFER[NPT];
+uint32_t ADC_BUFFER[NPT];
 uint32_t FFT_IN[NPT];
 uint32_t FFT_OUT[NPT];
 uint32_t FFT_MAG[NPT / 2];
@@ -170,6 +170,11 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
     // Stop ADC-DMA
     HAL_ADC_Stop_DMA(&hadc1);
+    for (i = 0; i < NPT; i++)
+    {
+        ADC_BUFFER[i] = (ADC_BUFFER[i]>>16)+(ADC_BUFFER[i]<<16);
+    }
+    i = 0;
     memcpy(FFT_IN,ADC_BUFFER,NPT*sizeof(uint16_t));
     for (i = 0; i < NPT; i++)
     {
