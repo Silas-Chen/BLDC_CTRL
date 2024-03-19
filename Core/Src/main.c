@@ -39,7 +39,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define NPT 256
-#define NPT_2 NPT * 2 // 填满uint32的数据需�?2�?16位ADC数据
+#define NPT_2 NPT * 2 // 填满uint32的数据需�?2�?16位ADC数据
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -224,7 +224,7 @@ void getMAX_FFT_MAG_FREQ(void)
             maxMAG_INDEX = i;
         }
     }
-    FREQ = FS * ((float)maxMAG_INDEX / ((float)NPT*2)); // 填满uint32的数据需�?2�?16位ADC数据
+    FREQ = FS * ((float)maxMAG_INDEX / ((float)NPT*2)); // 填满uint32的数据需�?2�?16位ADC数据
     i = 0;
 }
 
