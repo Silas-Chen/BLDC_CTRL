@@ -49,7 +49,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint32_t ADC_BUFFER[NPT];
+uint16_t ADC_BUFFER[NPT];
 uint32_t FFT_IN[NPT];
 uint32_t FFT_OUT[NPT];
 uint32_t FFT_MAG[NPT / 2];
@@ -170,10 +170,11 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
     // Stop ADC-DMA
     HAL_ADC_Stop_DMA(&hadc1);
-    // memcpy(FFT_IN,ADC_BUFFER,NPT*sizeof(uint16_t));
+    memcpy(FFT_IN,ADC_BUFFER,NPT*sizeof(uint16_t));
     for (i = 0; i < NPT; i++)
     {
-        FFT_IN[i] = (ADC_BUFFER[i] << 16);
+        // FFT_IN[i] = ADC_BUFFER[i];
+        FFT_IN[i] = (FFT_IN[i] << 16);
     }
     i = 0;
     cr4_fft_256_stm32(FFT_OUT, FFT_IN, NPT);
@@ -216,7 +217,7 @@ void getMAX_FFT_MAG_FREQ(void)
 {
     uint32_t maxMAG = 0;
     uint16_t maxMAG_INDEX = 0;
-    for (i = 1; i < NPT / 2; i++)
+    for (i = 2; i < NPT / 2; i++) // The number 'i' starts from may be about the wave form, like sin is from 1 and triangle is from 2.(?)
     {
         if (FFT_MAG[i] > maxMAG)
         {
@@ -224,7 +225,7 @@ void getMAX_FFT_MAG_FREQ(void)
             maxMAG_INDEX = i;
         }
     }
-    FREQ = FS * ((float)maxMAG_INDEX / ((float)NPT*2));
+    FREQ = FS * (((float)maxMAG_INDEX ) / ((float)NPT*2));
     i = 0;
 }
 
