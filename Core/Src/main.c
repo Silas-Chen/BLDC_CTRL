@@ -28,6 +28,7 @@
 /* USER CODE BEGIN Includes */
 #include "string.h"
 #include "stdint.h"
+#include "arm_math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,9 +43,9 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define NPT 256 // Number of FFT points
-#define CHANNELNUM 4
-#define CHANNELNUM__2 (CHANNELNUM / 2)
+#define NPT 1024 // Number of FFT points
+// #define CHANNELNUM 4
+// #define CHANNELNUM__2 (CHANNELNUM / 2)
 #define PSC 18   // According to STM32CubeMX configuration
 #define ARR 1000 // According to STM32CubeMX configuration
 /* USER CODE END PM */
@@ -52,16 +53,20 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint32_t ADC_BUFFER[NPT][CHANNELNUM__2];
-uint32_t FFT_IN[CHANNELNUM][NPT];
-uint32_t FFT_OUT[CHANNELNUM][NPT];
-uint32_t FFT_MAG[CHANNELNUM][NPT / 2];
-uint8_t i = 0;
-uint8_t j = 0;
-uint8_t m = 0;
-uint8_t n = 0;
+uint32_t ADC_BUFFER[NPT];
+float32_t FFT_IN[NPT*2];
+// float32_t FFT_OUT[NPT];
+float32_t FFT_MAG[NPT];
+// uint32_t ADC_BUFFER[NPT][CHANNELNUM__2];
+// uint32_t FFT_IN[CHANNELNUM][NPT];
+// uint32_t FFT_OUT[CHANNELNUM][NPT];
+// uint32_t FFT_MAG[CHANNELNUM][NPT / 2];
+uint16_t i = 0;
+// uint8_t j = 0;
+// uint8_t m = 0;
+// uint8_t n = 0;
 float FS = 180000000.0 / ((float)ARR * (float)PSC);
-float FREQ[CHANNELNUM] = {0};
+float FREQ = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -110,7 +115,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
     HAL_TIM_Base_Start(&htim3);
     // HAL_TIM_Base_Start_IT(&htim3);
-    HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC_BUFFER, NPT * CHANNELNUM); // One uint32 for two channels, there are 4 channels, so we need NPT*CHANNELNUM
+    // HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC_BUFFER, NPT * CHANNELNUM); // One uint32 for two channels, there are 4 channels, so we need NPT*CHANNELNUM
+    HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC_BUFFER, NPT * 2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -183,56 +189,67 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
     // Stop ADC-DMA
     HAL_ADC_Stop_DMA(&hadc1);
-
     for (i = 0; i < NPT; i++)
     {
-        // for (m = 0; m < CHANNELNUM; m++)
-        // {
-    //         // if ((m % 2) == 0)
-    //         // {
-    //         //     FFT_IN[m][i] = (ADC_BUFFER[i][0] << 16);
-    //         //     // FFT_IN[m][i] = (FFT_IN[m][i] << 16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
-    //         // }
-    //         // else
-    //         // {
-    //         //     FFT_IN[m][i] = (ADC_BUFFER[i][1] >> 16);
-    //         //     FFT_IN[m][i] = (FFT_IN[m][i] << 16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
-    //         // }
-    //         // switch (m)
-    //         // {
-    //         // case 0:
-                FFT_IN[0][i] = (ADC_BUFFER[i][0] << 16);
-    //             // FFT_IN[0][i] = (FFT_IN[0][i]<<16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
-    //         //     break;
-    //         // case 1:
-    //             FFT_IN[1][i] = (ADC_BUFFER[i][0] >> 16);
-    //             FFT_IN[1][i] = (FFT_IN[1][i] << 16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
-    //         //     break;
-    //         // case 2:
-    //             FFT_IN[2][i] = (ADC_BUFFER[i][1] << 16);
-    //             // FFT_IN[2][i] = (FFT_IN[2][i]<<16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
-    //         //     break;
-    //         // case 3:
-    //             FFT_IN[3][i] = (ADC_BUFFER[i][1] >> 16);
-    //             FFT_IN[3][i] = (FFT_IN[3][i] << 16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
-    //             // break;
-    //         // default:
-    //         //     // Error
-    //         //     break;
-            // }
-        // }
+        ADC_BUFFER[i] = (ADC_BUFFER[i]>>16)+(ADC_BUFFER[i]<<16);
+        FFT_IN[i*2] = (float32_t)ADC_BUFFER[i];
     }
-
+    // i = 0;
+    // memcpy(FFT_IN,ADC_BUFFER,NPT*sizeof(uint16_t));
+    // FFT calculate
+    arm_cfft_radix4_instance_f32 S;
+    arm_cfft_radix4_init_f32(&S, NPT, 0, 1);
+    arm_cfft_radix4_f32(&S, FFT_IN);
+    arm_cmplx_mag_f32(FFT_IN, FFT_MAG, NPT / 2);
+    // i = 0;
+    // for (i = 0; i < NPT; i++)
+    // {
+    //     // for (m = 0; m < CHANNELNUM; m++)
+    //     // {
+    //     //         // if ((m % 2) == 0)
+    //     //         // {
+    //     //         //     FFT_IN[m][i] = (ADC_BUFFER[i][0] << 16);
+    //     //         //     // FFT_IN[m][i] = (FFT_IN[m][i] << 16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
+    //     //         // }
+    //     //         // else
+    //     //         // {
+    //     //         //     FFT_IN[m][i] = (ADC_BUFFER[i][1] >> 16);
+    //     //         //     FFT_IN[m][i] = (FFT_IN[m][i] << 16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
+    //     //         // }
+    //     //         // switch (m)
+    //     //         // {
+    //     //         // case 0:
+    //     // FFT_IN[0][i] = (ADC_BUFFER[i][0] << 16);
+    //     //             // FFT_IN[0][i] = (FFT_IN[0][i]<<16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
+    //     //         //     break;
+    //     //         // case 1:
+    //     //             FFT_IN[1][i] = (ADC_BUFFER[i][0] >> 16);
+    //     //             FFT_IN[1][i] = (FFT_IN[1][i] << 16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
+    //     //         //     break;
+    //     //         // case 2:
+    //     //             FFT_IN[2][i] = (ADC_BUFFER[i][1] << 16);
+    //     //             // FFT_IN[2][i] = (FFT_IN[2][i]<<16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
+    //     //         //     break;
+    //     //         // case 3:
+    //     //             FFT_IN[3][i] = (ADC_BUFFER[i][1] >> 16);
+    //     //             FFT_IN[3][i] = (FFT_IN[3][i] << 16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
+    //     //             // break;
+    //     //         // default:
+    //     //         //     // Error
+    //     //         //     break;
+    //     // }
+    //     // }
+    // }
     // Reset i, j, m, n
-    m = 0;
-    n = 0;
+    // m = 0;
+    // n = 0;
+    // j = 0;
     i = 0;
-    j = 0;
-
     // getFFT_MAG();
     // getMAX_FFT_MAG_FREQ();
     // Restart ADC-DMA
-    HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC_BUFFER, NPT * CHANNELNUM);
+    // HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC_BUFFER, NPT * CHANNELNUM);
+    HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC_BUFFER, NPT * 2);
 }
 /* USER CODE END 4 */
 
