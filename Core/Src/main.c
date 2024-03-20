@@ -28,7 +28,9 @@
 /* USER CODE BEGIN Includes */
 #include "string.h"
 #include "stdint.h"
-#include "arm_math.h"
+#include "math.h"
+#include "stm32_dsp.h"
+// #include "arm_math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,9 +56,9 @@
 
 /* USER CODE BEGIN PV */
 uint32_t ADC_BUFFER[NPT];
-float32_t FFT_IN[NPT*2];
-// float32_t FFT_OUT[NPT];
-float32_t FFT_MAG[NPT];
+uint32_t FFT_IN[NPT];
+uint32_t FFT_OUT[NPT];
+uint32_t FFT_MAG[NPT/2];
 // uint32_t ADC_BUFFER[NPT][CHANNELNUM__2];
 // uint32_t FFT_IN[CHANNELNUM][NPT];
 // uint32_t FFT_OUT[CHANNELNUM][NPT];
@@ -65,7 +67,7 @@ uint16_t i = 0;
 // uint8_t j = 0;
 // uint8_t m = 0;
 // uint8_t n = 0;
-float FS = 180000000.0 / ((float)ARR * (float)PSC);
+float FS = (float)180000000.0 / ((float)ARR * (float)PSC);
 float FREQ = {0};
 /* USER CODE END PV */
 
@@ -77,7 +79,8 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void getFFT_MAG(void);
+void getMAX_FFT_MAG_FREQ(void);
 /* USER CODE END 0 */
 
 /**
@@ -192,64 +195,65 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
     for (i = 0; i < NPT; i++)
     {
         ADC_BUFFER[i] = (ADC_BUFFER[i]>>16)+(ADC_BUFFER[i]<<16);
-        FFT_IN[i*2] = (float32_t)ADC_BUFFER[i];
     }
-    // i = 0;
-    // memcpy(FFT_IN,ADC_BUFFER,NPT*sizeof(uint16_t));
-    // FFT calculate
-    arm_cfft_radix4_instance_f32 S;
-    arm_cfft_radix4_init_f32(&S, NPT, 0, 1);
-    arm_cfft_radix4_f32(&S, FFT_IN);
-    arm_cmplx_mag_f32(FFT_IN, FFT_MAG, NPT / 2);
-    // i = 0;
-    // for (i = 0; i < NPT; i++)
-    // {
-    //     // for (m = 0; m < CHANNELNUM; m++)
-    //     // {
-    //     //         // if ((m % 2) == 0)
-    //     //         // {
-    //     //         //     FFT_IN[m][i] = (ADC_BUFFER[i][0] << 16);
-    //     //         //     // FFT_IN[m][i] = (FFT_IN[m][i] << 16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
-    //     //         // }
-    //     //         // else
-    //     //         // {
-    //     //         //     FFT_IN[m][i] = (ADC_BUFFER[i][1] >> 16);
-    //     //         //     FFT_IN[m][i] = (FFT_IN[m][i] << 16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
-    //     //         // }
-    //     //         // switch (m)
-    //     //         // {
-    //     //         // case 0:
-    //     // FFT_IN[0][i] = (ADC_BUFFER[i][0] << 16);
-    //     //             // FFT_IN[0][i] = (FFT_IN[0][i]<<16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
-    //     //         //     break;
-    //     //         // case 1:
-    //     //             FFT_IN[1][i] = (ADC_BUFFER[i][0] >> 16);
-    //     //             FFT_IN[1][i] = (FFT_IN[1][i] << 16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
-    //     //         //     break;
-    //     //         // case 2:
-    //     //             FFT_IN[2][i] = (ADC_BUFFER[i][1] << 16);
-    //     //             // FFT_IN[2][i] = (FFT_IN[2][i]<<16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
-    //     //         //     break;
-    //     //         // case 3:
-    //     //             FFT_IN[3][i] = (ADC_BUFFER[i][1] >> 16);
-    //     //             FFT_IN[3][i] = (FFT_IN[3][i] << 16); // FFT_IN is 32-bit, first 16-bit should be real number, and the second 16-bit should be imaginary number
-    //     //             // break;
-    //     //         // default:
-    //     //         //     // Error
-    //     //         //     break;
-    //     // }
-    //     // }
-    // }
-    // Reset i, j, m, n
-    // m = 0;
-    // n = 0;
-    // j = 0;
     i = 0;
-    // getFFT_MAG();
-    // getMAX_FFT_MAG_FREQ();
+    memcpy(FFT_IN,ADC_BUFFER,NPT*sizeof(uint16_t));
+    for (i = 0; i < NPT; i++)
+    {
+        // FFT_IN[i] = ADC_BUFFER[i];
+        FFT_IN[i] = (FFT_IN[i] << 16);
+    }
+    i = 0;
+    cr4_fft_1024_stm32(FFT_OUT, FFT_IN, NPT);
+    getFFT_MAG();
+    getMAX_FFT_MAG_FREQ();
     // Restart ADC-DMA
     // HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC_BUFFER, NPT * CHANNELNUM);
     HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC_BUFFER, NPT * 2);
+}
+
+// Take the modulus of the FFT result
+void getFFT_MAG(void)
+{
+    signed short lX, lY;
+    float X, Y, Mag;
+    unsigned short i;
+    for (i = 0; i < NPT / 2; i++)
+    {
+        lX = (FFT_OUT[i] << 16) >> 16;
+        lY = (FFT_OUT[i] >> 16);
+
+        // Dividing by 32768 and then multiplying by 65536 is done to comply with floating-point calculation rules.
+        X = NPT * ((float)lX) / 32768;
+        Y = NPT * ((float)lY) / 32768;
+        Mag = sqrt(X * X + Y * Y) / NPT;
+        if (i == 0)
+        {
+            FFT_MAG[i] = (unsigned long)(Mag * 32768);
+        }
+        else
+        {
+            FFT_MAG[i] = (unsigned long)(Mag * 65536);
+        }
+    }
+    i = 0;
+}
+
+// Find the main frequency
+void getMAX_FFT_MAG_FREQ(void)
+{
+    uint32_t maxMAG = 0;
+    uint16_t maxMAG_INDEX = 0;
+    for (i = 2; i < NPT / 2; i++) // The number 'i' starts from may be about the wave form, like sin is from 1 and triangle is from 2.(?)
+    {
+        if (FFT_MAG[i] > maxMAG)
+        {
+            maxMAG = FFT_MAG[i];
+            maxMAG_INDEX = i;
+        }
+    }
+    FREQ = FS * (((float)maxMAG_INDEX ) / ((float)NPT*4)) + 2 + 4; // Add 2 and 4 is for correction
+    i = 0;
 }
 /* USER CODE END 4 */
 

@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F427xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;..\Drivers\CMSIS\DSP\Include</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;..\Core\Inc\FFT</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -547,12 +547,27 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Drivers/CMSIS/DSP</GroupName>
+          <GroupName>FFT</GroupName>
           <Files>
             <File>
-              <FileName>arm_math.h</FileName>
+              <FileName>cr4_fft_256_stm32.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\Core\Inc\FFT\cr4_fft_256_stm32.s</FilePath>
+            </File>
+            <File>
+              <FileName>cr4_fft_1024_stm32.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\Core\Inc\FFT\cr4_fft_1024_stm32.s</FilePath>
+            </File>
+            <File>
+              <FileName>stm32_dsp.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\Drivers\CMSIS\DSP\Include\arm_math.h</FilePath>
+              <FilePath>..\Core\Inc\FFT\stm32_dsp.h</FilePath>
+            </File>
+            <File>
+              <FileName>table_fft.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\Inc\FFT\table_fft.h</FilePath>
             </File>
           </Files>
         </Group>

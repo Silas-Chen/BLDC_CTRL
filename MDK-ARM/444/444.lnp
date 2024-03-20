@@ -28,6 +28,8 @@
 "444\stm32f4xx_hal_tim.o"
 "444\stm32f4xx_hal_tim_ex.o"
 "444\system_stm32f4xx.o"
+"444\cr4_fft_256_stm32.o"
+"444\cr4_fft_1024_stm32.o"
 --strict --scatter "444\444.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
