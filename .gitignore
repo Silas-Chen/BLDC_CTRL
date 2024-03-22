@@ -24,6 +24,10 @@ MDK-ARM/222/
 *.sct
 *.ld
 *.lst
+# *.s # This is about some core files, so it is commented out
 
 # SSH
 .ssh/
+
+# VSCode
+.vscode/

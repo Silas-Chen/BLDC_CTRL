@@ -41,4 +41,4 @@
 444\main.o: ../Core/Inc/gpio.h
 444\main.o: D:\Embedded_Dev\Keil5\Core\ARM\ARMCC\Bin\..\include\string.h
 444\main.o: D:\Embedded_Dev\Keil5\Core\ARM\ARMCC\Bin\..\include\math.h
-444\main.o: ..\Core\Inc\FFT\stm32_dsp.h
+444\main.o: ../Core/Inc/FFT/stm32_dsp.h
