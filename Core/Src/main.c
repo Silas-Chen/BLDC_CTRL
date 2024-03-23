@@ -223,7 +223,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
     cr4_fft_1024_stm32(FFT_OUT, FFT_IN, NPT);
     getFFT_MAG();
     getMAX_FFT_MAG_FREQ();
-    putFLOAT(FREQ, TX_BUFFER, 0);
+    putFLOAT((FREQ / 6) * 60, TX_BUFFER, 0);       // Divided by 6 to get the round per second, because the motor has 12 poles(6 pairs of poles), and then multiplied by 60 to get the round per minute
     TX_FLAG = CAN_SEND_MSG(TX_BUFFER, CHANNELNUM); // Send data and check if the sending is successful
     memset(TX_BUFFER, 0, sizeof(TX_BUFFER));
     // Restart ADC-DMA
@@ -241,7 +241,7 @@ void getFFT_MAG(void)
         lX = (FFT_OUT[i] << 16) >> 16;
         lY = (FFT_OUT[i] >> 16);
 
-        // Dividing by 32768 and then multiplying by 65536 is done to comply with floating-point calculation rules.
+        // Dividing by 32768 and then multiplying by 65536 is done to comply with floating-point calculation rules
         X = NPT * ((float)lX) / 32768;
         Y = NPT * ((float)lY) / 32768;
         Mag = sqrt(X * X + Y * Y) / NPT;
@@ -474,4 +474,4 @@ void assert_failed(uint8_t *file, uint32_t line)
        ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
     /* USER CODE END 6 */
 }
-#endif /* USE_FULL_ASSERT */ 
+#endif /* USE_FULL_ASSERT */
