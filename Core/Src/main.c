@@ -52,7 +52,7 @@
 #define ARR 1000     // According to STM32CubeMX configuration
 #define CAN_RX_EXT_ID 0x18FF50E5
 #define CAN_TX_EXT_ID 0x18FF51E5
-#define PWM_MAX 1000
+// #define PWM_MAX 1000
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -72,7 +72,7 @@ uint32_t FFT_MAG[NPT / 2];
 uint16_t i = 0;
 float FS = (float)180000000.0 / ((float)ARR * (float)PSC);
 float FREQ = 0;
-TIM_OC_InitTypeDef sConfig[4];
+// TIM_OC_InitTypeDef sConfig[4];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -89,118 +89,117 @@ void putFLOAT(float Fdat, unsigned char *Buf, unsigned char Pos); // See in http
 void CAN_FILTER_INIT(void);
 uint8_t CAN_SEND_MSG(uint8_t *msg, uint8_t len);
 // uint8_t CAN_RECEIVE_MSG(uint8_t *msg, uint8_t len);
-void TIM8_PWM_INIT(void);
-void TIM8_PWM_CFG(uint16_t duty);
-void INIT_ESC(void);
+// void TIM8_PWM_INIT(void);
+// void TIM8_PWM_CFG(uint16_t duty);
+// void INIT_ESC(void);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
+    /* USER CODE BEGIN 1 */
 
-  /* USER CODE END 1 */
+    /* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+    /* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+    HAL_Init();
 
-  /* USER CODE BEGIN Init */
+    /* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+    /* USER CODE END Init */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+    /* Configure the system clock */
+    SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
+    /* USER CODE BEGIN SysInit */
 
-  /* USER CODE END SysInit */
+    /* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_DMA_Init();
-  MX_ADC1_Init();
-  MX_TIM3_Init();
-  MX_CAN1_Init();
-  MX_TIM8_Init();
-  /* USER CODE BEGIN 2 */
+    /* Initialize all configured peripherals */
+    MX_GPIO_Init();
+    MX_DMA_Init();
+    MX_ADC1_Init();
+    MX_TIM3_Init();
+    MX_CAN1_Init();
+    MX_TIM8_Init();
+    /* USER CODE BEGIN 2 */
     CAN_FILTER_INIT();
     HAL_TIM_Base_Start(&htim3);
     // HAL_TIM_Base_Start_IT(&htim3);
     HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC_BUFFER, NPT * 2);
-    TIM8_PWM_INIT();
-    INIT_ESC();
-    TIM8_PWM_CFG(550);
-  /* USER CODE END 2 */
+    // TIM8_PWM_INIT();
+    // INIT_ESC();
+    // TIM8_PWM_CFG(550);
+    /* USER CODE END 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+    /* Infinite loop */
+    /* USER CODE BEGIN WHILE */
     while (1)
     {
-    /* USER CODE END WHILE */
+        /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
+        /* USER CODE BEGIN 3 */
         TX_FLAG = CAN_SEND_MSG(TX_BUFFER, CHANNELNUM); // Send data and check if the sending is successful
         memset(TX_BUFFER, 0, sizeof(TX_BUFFER));
     }
-  /* USER CODE END 3 */
+    /* USER CODE END 3 */
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Configure the main internal regulator output voltage
-  */
-  __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+    /** Configure the main internal regulator output voltage
+     */
+    __HAL_RCC_PWR_CLK_ENABLE();
+    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 180;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
+    /** Initializes the RCC Oscillators according to the specified parameters
+     * in the RCC_OscInitTypeDef structure.
+     */
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+    RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+    RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+    RCC_OscInitStruct.PLL.PLLM = 8;
+    RCC_OscInitStruct.PLL.PLLN = 180;
+    RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+    RCC_OscInitStruct.PLL.PLLQ = 4;
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+    {
+        Error_Handler();
+    }
 
-  /** Activate the Over-Drive mode
-  */
-  if (HAL_PWREx_EnableOverDrive() != HAL_OK)
-  {
-    Error_Handler();
-  }
+    /** Activate the Over-Drive mode
+     */
+    if (HAL_PWREx_EnableOverDrive() != HAL_OK)
+    {
+        Error_Handler();
+    }
 
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+    /** Initializes the CPU, AHB and APB buses clocks
+     */
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
-  {
-    Error_Handler();
-  }
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
+    {
+        Error_Handler();
+    }
 }
 
 /* USER CODE BEGIN 4 */
@@ -225,8 +224,8 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
     getFFT_MAG();
     getMAX_FFT_MAG_FREQ();
     putFLOAT(FREQ, TX_BUFFER, 0);
-    // TX_FLAG = CAN_SEND_MSG(TX_BUFFER, CHANNELNUM); // Send data and check if the sending is successful
-    // memset(TX_BUFFER, 0, sizeof(TX_BUFFER));
+    TX_FLAG = CAN_SEND_MSG(TX_BUFFER, CHANNELNUM); // Send data and check if the sending is successful
+    memset(TX_BUFFER, 0, sizeof(TX_BUFFER));
     // Restart ADC-DMA
     HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC_BUFFER, NPT * 2);
 }
@@ -271,7 +270,7 @@ void getMAX_FFT_MAG_FREQ(void)
             maxMAG_INDEX = i;
         }
     }
-    FREQ = FS * (((float)maxMAG_INDEX) / ((float)NPT * 4)) + 2 + 4; // Add 2 and 4 is for correction
+    FREQ = FS * (((float)maxMAG_INDEX) / ((float)NPT * 4)) + 26; // Add 2 and 4 is for correction
     i = 0;
 }
 
@@ -292,13 +291,13 @@ void CAN_FILTER_INIT(void)
     CAN_FilterTypeDef sFilterConfig;
 
     sFilterConfig.FilterBank = 0;
-    sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK; // 过滤器模式为ID屏蔽位模�?
+    sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK; // 过滤器模式为ID屏蔽位模�??
     sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
 
     sFilterConfig.FilterIdHigh = (((uint32_t)CAN_RX_EXT_ID << 3) & 0xFFFF0000) >> 16;
     sFilterConfig.FilterIdLow = (((uint32_t)CAN_RX_EXT_ID << 3) | CAN_ID_EXT | CAN_RTR_DATA) & 0xFFFF;
-    sFilterConfig.FilterMaskIdHigh = 0xFFFF;           // 过滤器高16位每位必须匹�?
-    sFilterConfig.FilterMaskIdLow = 0xFFFF;            // 过滤器低16位每位必须匹�?
+    sFilterConfig.FilterMaskIdHigh = 0xFFFF;           // 过滤器高16位每位必须匹�??
+    sFilterConfig.FilterMaskIdLow = 0xFFFF;            // 过滤器低16位每位必须匹�??
     sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0; // 过滤器被关联到FIFO 0
     sFilterConfig.FilterActivation = ENABLE;
     sFilterConfig.SlaveStartFilterBank = 14;
@@ -346,7 +345,7 @@ uint8_t CAN_SEND_MSG(uint8_t *msg, uint8_t len)
         message[i] = msg[i];
     }
 
-    if (HAL_CAN_AddTxMessage(&hcan1, &TX_HEADER, message, &TxMailbox) != HAL_OK) // 发�??
+    if (HAL_CAN_AddTxMessage(&hcan1, &TX_HEADER, message, &TxMailbox) != HAL_OK) // 发�??
     {
         return 1;
     }
@@ -361,118 +360,118 @@ uint8_t CAN_SEND_MSG(uint8_t *msg, uint8_t len)
 // {
 //     uint32_t i;
 
-//     RX_FLAG = 1; // 接收标志�?
+//     RX_FLAG = 1; // 接收标志�??
 //     HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &RX_HEADER, RX_DATA);
 //     for (i = 0; i < RX_HEADER.DLC; i++)
 //     {
 
-//         RX_BUFFER[i] = RX_DATA[i]; // 用RxBuf转存RxData的数�?
+//         RX_BUFFER[i] = RX_DATA[i]; // 用RxBuf转存RxData的数�??
 //     }
 // }
 
 // Initialize TIM8 PWM
-void TIM8_PWM_INIT(void)
-{
-    // htim4.Instance = TIM8;
-    // htim4.Init.Prescaler = PWM_PRESCALER - 1; // 72MHz
-    // htim4.Init.Period = PWM_PERIOD - 1;       //->500Hz(144000)              7
-    HAL_TIM_Base_Init(&htim8);
-    uint8_t i = 0;
-    for (i = 0; i < 4; i += 1)
-    {
-        sConfig[i].OCMode = TIM_OCMODE_PWM1;
-        sConfig[i].OCPolarity = TIM_OCPOLARITY_HIGH;
-        sConfig[i].OCFastMode = TIM_OCFAST_DISABLE;
-    }
-    // HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
-    // HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
-    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
-    // HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
-}
+// void TIM8_PWM_INIT(void)
+// {
+//     // htim4.Instance = TIM8;
+//     // htim4.Init.Prescaler = PWM_PRESCALER - 1; // 72MHz
+//     // htim4.Init.Period = PWM_PERIOD - 1;       //->500Hz(144000)              7
+//     HAL_TIM_Base_Init(&htim8);
+//     uint8_t i = 0;
+//     for (i = 0; i < 4; i += 1)
+//     {
+//         sConfig[i].OCMode = TIM_OCMODE_PWM1;
+//         sConfig[i].OCPolarity = TIM_OCPOLARITY_HIGH;
+//         sConfig[i].OCFastMode = TIM_OCFAST_DISABLE;
+//     }
+//     // HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
+//     // HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+//     HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
+//     // HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
+// }
 
-void TIM8_PWM_CFG(uint16_t duty)
-{
-    for (uint8_t i = 0; i < 4; i++)
-    {
-        if (duty <= PWM_MAX)
-        {
-            sConfig[i].Pulse = duty;
-        }
-        else
-        {
-            sConfig[i].Pulse = PWM_MAX;
-        }
-    }
-    HAL_TIM_PWM_ConfigChannel(&htim8, &sConfig[2], TIM_CHANNEL_3);
-    // HAL_TIM_PWM_ConfigChannel(&htim4, &sConfig[1], TIM_CHANNEL_2);
-    // HAL_TIM_PWM_ConfigChannel(&htim4, &sConfig[2], TIM_CHANNEL_3);
-    // HAL_TIM_PWM_ConfigChannel(&htim4, &sConfig[3], TIM_CHANNEL_4);
-}
+// void TIM8_PWM_CFG(uint16_t duty)
+// {
+//     for (uint8_t i = 0; i < 4; i++)
+//     {
+//         if (duty <= PWM_MAX)
+//         {
+//             sConfig[i].Pulse = duty;
+//         }
+//         else
+//         {
+//             sConfig[i].Pulse = PWM_MAX;
+//         }
+//     }
+//     HAL_TIM_PWM_ConfigChannel(&htim8, &sConfig[2], TIM_CHANNEL_3);
+//     // HAL_TIM_PWM_ConfigChannel(&htim4, &sConfig[1], TIM_CHANNEL_2);
+//     // HAL_TIM_PWM_ConfigChannel(&htim4, &sConfig[2], TIM_CHANNEL_3);
+//     // HAL_TIM_PWM_ConfigChannel(&htim4, &sConfig[3], TIM_CHANNEL_4);
+// }
 
-void INIT_ESC(void)
-{
-    // GPIO_InitTypeDef GPIO_PB9;
-    // GPIO_PB9.Pin = GPIO_PIN_9;
-    // GPIO_PB9.Mode = GPIO_MODE_OUTPUT_PP;
-    // GPIO_PB9.Pull = GPIO_PULLUP;
-    // GPIO_PB9.Speed = GPIO_SPEED_FREQ_LOW;
-    // HAL_GPIO_Init(GPIOB, &GPIO_PB9);
+// void INIT_ESC(void)
+// {
+//     // GPIO_InitTypeDef GPIO_PB9;
+//     // GPIO_PB9.Pin = GPIO_PIN_9;
+//     // GPIO_PB9.Mode = GPIO_MODE_OUTPUT_PP;
+//     // GPIO_PB9.Pull = GPIO_PULLUP;
+//     // GPIO_PB9.Speed = GPIO_SPEED_FREQ_LOW;
+//     // HAL_GPIO_Init(GPIOB, &GPIO_PB9);
 
-    // Init ESC.
-    TIM4_PWM_CFG(1000);
-    // DELAY_MS(20);
-    HAL_Delay(20);
-    TIM4_PWM_CFG(0);
-    // DELAY_MS(20);
-    HAL_Delay(20);
-    // TIM4_PWM_CFG(1000);
-    // DELAY_MS(20);
-    // HAL_Delay(20);
+//     // Init ESC.
+//     TIM8_PWM_CFG(1000);
+//     // DELAY_MS(20);
+//     HAL_Delay(20);
+//     TIM8_PWM_CFG(0);
+//     // DELAY_MS(20);
+//     HAL_Delay(20);
+//     // TIM8_PWM_CFG(1000);
+//     // DELAY_MS(20);
+//     // HAL_Delay(20);
 
-    // Normal starting ESC.
-    TIM4_PWM_CFG(0);
-    // DELAY_MS(20);
-    HAL_Delay(20);
-    TIM4_PWM_CFG(1000);
-    // DELAY_MS(20);
-    HAL_Delay(20);
-    TIM4_PWM_CFG(550);
-    // DELAY_MS(5000);
-    HAL_Delay(5000);
-    TIM4_PWM_CFG(250);
-    // DELAY_MS(20);
-    HAL_Delay(20);
-}
+//     // Normal starting ESC.
+//     TIM8_PWM_CFG(0);
+//     // DELAY_MS(20);
+//     HAL_Delay(20);
+//     TIM8_PWM_CFG(1000);
+//     // DELAY_MS(20);
+//     HAL_Delay(20);
+//     TIM8_PWM_CFG(550);
+//     // DELAY_MS(5000);
+//     HAL_Delay(5000);
+//     TIM8_PWM_CFG(250);
+//     // DELAY_MS(20);
+//     HAL_Delay(20);
+// }
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
-  /* USER CODE BEGIN Error_Handler_Debug */
+    /* USER CODE BEGIN Error_Handler_Debug */
     /* User can add his own implementation to report the HAL error return state */
     __disable_irq();
     while (1)
     {
     }
-  /* USER CODE END Error_Handler_Debug */
+    /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
-  /* USER CODE BEGIN 6 */
+    /* USER CODE BEGIN 6 */
     /* User can add his own implementation to report the file name and line number,
        ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
+    /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
