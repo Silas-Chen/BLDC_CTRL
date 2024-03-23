@@ -144,8 +144,8 @@ int main(void)
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
-        TX_FLAG = CAN_SEND_MSG(TX_BUFFER, CHANNELNUM); // Send data and check if the sending is successful
-        memset(TX_BUFFER, 0, sizeof(TX_BUFFER));
+        // TX_FLAG = CAN_SEND_MSG(TX_BUFFER, CHANNELNUM); // Send data and check if the sending is successful
+        // memset(TX_BUFFER, 0, sizeof(TX_BUFFER));
     }
     /* USER CODE END 3 */
 }
