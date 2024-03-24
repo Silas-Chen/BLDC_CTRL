@@ -51,7 +51,7 @@
 #define PSC 18       // According to STM32CubeMX configuration
 #define ARR 1000     // According to STM32CubeMX configuration
 // #define CAN_RX_EXT_ID 0x18FF50E5
-#define CAN_TX_ID 0x210
+#define CAN_TX_ID 0x110
 // #define PWM_MAX 1000
 /* USER CODE END PM */
 
