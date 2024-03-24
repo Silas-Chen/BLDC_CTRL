@@ -50,8 +50,8 @@
 #define CHANNELNUM 4 // Number of ADC channels
 #define PSC 18       // According to STM32CubeMX configuration
 #define ARR 1000     // According to STM32CubeMX configuration
-#define CAN_RX_EXT_ID 0x18FF50E5
-#define CAN_TX_EXT_ID 0x18FF51E5
+// #define CAN_RX_EXT_ID 0x18FF50E5
+#define CAN_TX_ID 0x210
 // #define PWM_MAX 1000
 /* USER CODE END PM */
 
@@ -59,7 +59,7 @@
 
 /* USER CODE BEGIN PV */
 CAN_TxHeaderTypeDef TX_HEADER;
-CAN_RxHeaderTypeDef RX_HEADER;
+// CAN_RxHeaderTypeDef RX_HEADER;
 // uint8_t RX_DATA[8];
 // uint8_t RX_FLAG;
 // uint8_t RX_BUFFER[8];
@@ -288,25 +288,25 @@ void putFLOAT(float Fdat, unsigned char *Buf, unsigned char Pos)
 // CAN filter initialization
 void CAN_FILTER_INIT(void)
 {
-    CAN_FilterTypeDef sFilterConfig;
+    // CAN_FilterTypeDef sFilterConfig;
 
-    sFilterConfig.FilterBank = 0;
-    sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK; // 过滤器模式为ID屏蔽位模�??
-    sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+    // sFilterConfig.FilterBank = 0;
+    // sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK; // Set the filter mode to mask mode
+    // sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
 
-    sFilterConfig.FilterIdHigh = (((uint32_t)CAN_RX_EXT_ID << 3) & 0xFFFF0000) >> 16;
-    sFilterConfig.FilterIdLow = (((uint32_t)CAN_RX_EXT_ID << 3) | CAN_ID_EXT | CAN_RTR_DATA) & 0xFFFF;
-    sFilterConfig.FilterMaskIdHigh = 0xFFFF;           // 过滤器高16位每位必须匹�??
-    sFilterConfig.FilterMaskIdLow = 0xFFFF;            // 过滤器低16位每位必须匹�??
-    sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0; // 过滤器被关联到FIFO 0
-    sFilterConfig.FilterActivation = ENABLE;
-    sFilterConfig.SlaveStartFilterBank = 14;
+    // sFilterConfig.FilterIdHigh = (((uint32_t)CAN_RX_EXT_ID << 3) & 0xFFFF0000) >> 16;                  // Set the filter ID high 16 bits
+    // sFilterConfig.FilterIdLow = (((uint32_t)CAN_RX_EXT_ID << 3) | CAN_ID_EXT | CAN_RTR_DATA) & 0xFFFF; // Set the filter ID low 16 bits, the way to set the filter ID is to shift the ID 3 bits to the left and then set the ID to the extended frame and data frame
+    // sFilterConfig.FilterMaskIdHigh = 0xFFFF;                                                           // Set the filter mask high 16 bits
+    // sFilterConfig.FilterMaskIdLow = 0xFFFF;                                                            // Set the filter mask low 16 bits
+    // sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;                                                 // Set the filter FIFO assignment
+    // sFilterConfig.FilterActivation = ENABLE;
+    // sFilterConfig.SlaveStartFilterBank = 14;
 
-    if (HAL_CAN_ConfigFilter(&hcan1, &sFilterConfig) != HAL_OK)
-    {
-        /* Filter configuration Error */
-        Error_Handler();
-    }
+    // if (HAL_CAN_ConfigFilter(&hcan1, &sFilterConfig) != HAL_OK)
+    // {
+    //     /* Filter configuration Error */
+    //     Error_Handler();
+    // }
 
     if (HAL_CAN_Start(&hcan1) != HAL_OK)
     {
@@ -320,11 +320,12 @@ void CAN_FILTER_INIT(void)
         Error_Handler();
     }
 
-    TX_HEADER.ExtId = CAN_TX_EXT_ID; // Set the extended identifier (29-bit)
-    TX_HEADER.IDE = CAN_ID_EXT;      // Use extended frame
-    TX_HEADER.RTR = CAN_RTR_DATA;    // Set as data frame
-    TX_HEADER.DLC = 8;               // Set the data length to 8
-    TX_HEADER.TransmitGlobalTime = DISABLE;
+    // Config TX_HEADER with normal frame
+    // TX_HEADER.ExtId = ; // Set the extended identifier (29-bit)
+    // TX_HEADER.IDE = CAN_ID_EXT;      // Use extended frame
+    // TX_HEADER.RTR = CAN_RTR_DATA;    // Set as data frame
+    // TX_HEADER.DLC = 8;               // Set the data length to 8
+    TX_HEADER.TransmitGlobalTime = DISABLE; // Disable the transmission time stamp
 }
 
 // CAN send message, takes an array pointer and data length as input parameters
@@ -335,8 +336,8 @@ uint8_t CAN_SEND_MSG(uint8_t *msg, uint8_t len)
     uint32_t TxMailbox;
     uint8_t message[8];
 
-    TX_HEADER.ExtId = CAN_TX_EXT_ID; // Set the extended identifier (29-bit)
-    TX_HEADER.IDE = CAN_ID_EXT;      // Use extended frame
+    TX_HEADER.StdId = CAN_TX_ID;     // Set the standard identifier (11-bit)
+    TX_HEADER.IDE = CAN_ID_STD;      // Use standard frame
     TX_HEADER.RTR = CAN_RTR_DATA;    // Set as data frame
     TX_HEADER.DLC = len;             // Set the data length to 8
 
@@ -345,7 +346,7 @@ uint8_t CAN_SEND_MSG(uint8_t *msg, uint8_t len)
         message[i] = msg[i];
     }
 
-    if (HAL_CAN_AddTxMessage(&hcan1, &TX_HEADER, message, &TxMailbox) != HAL_OK) // 发�??
+    if (HAL_CAN_AddTxMessage(&hcan1, &TX_HEADER, message, &TxMailbox) != HAL_OK) // Add a message to the mailbox
     {
         return 1;
     }
@@ -360,12 +361,12 @@ uint8_t CAN_SEND_MSG(uint8_t *msg, uint8_t len)
 // {
 //     uint32_t i;
 
-//     RX_FLAG = 1; // 接收标志�??
+//     RX_FLAG = 1; // Set the receive flag to 1
 //     HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &RX_HEADER, RX_DATA);
 //     for (i = 0; i < RX_HEADER.DLC; i++)
 //     {
 
-//         RX_BUFFER[i] = RX_DATA[i]; // 用RxBuf转存RxData的数�??
+//         RX_BUFFER[i] = RX_DATA[i]; // Copy the received data to the receive buffer
 //     }
 // }
 
