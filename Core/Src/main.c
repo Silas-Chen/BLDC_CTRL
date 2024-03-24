@@ -223,6 +223,9 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
     cr4_fft_1024_stm32(FFT_OUT, FFT_IN, NPT);
     getFFT_MAG();
     getMAX_FFT_MAG_FREQ();
+    if(FREQ<40){
+        FREQ = 0;
+    }
     putFLOAT((FREQ / 6) * 60, TX_BUFFER, 0);       // Divided by 6 to get the round per second, because the motor has 12 poles(6 pairs of poles), and then multiplied by 60 to get the round per minute
     TX_FLAG = CAN_SEND_MSG(TX_BUFFER, CHANNELNUM); // Send data and check if the sending is successful
     memset(TX_BUFFER, 0, sizeof(TX_BUFFER));
